@@ -1,21 +1,13 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using DG.Tweening;
 
-public class MButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
+public class MButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     public UnityEvent onClick = new UnityEvent();
     public UnityEvent onDoubleClick = new UnityEvent();
     public UnityEvent onLongPress = new UnityEvent();
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        
-    }
 
     /// <summary>
     /// 计时
@@ -28,41 +20,35 @@ public class MButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler,
         {
             yield return new WaitForEndOfFrame();
             curTime += Time.deltaTime;
-
-            if (onclickNums == 1 && curTime > waitTime && isUp == true)
+            if (onclickNums == 1 && curTime > waitTime && isUp == true && isLongPress == false)
             {
                 //单击
                 onclickNums = 0;
                 curTime = 0;
                 onClick.Invoke();
+                //print("单击");
                 break;
             }
-            else if (onclickNums == 2 && curTime < waitTime && isUp == true)
+            else if (isUp == false && onclickNums == 1 && curTime > longPressTime)
             {
-                //双击
-                onclickNums = 0;
-                curTime = 0;
-                onDoubleClick.Invoke();
-                break;
-            }
-            else if (onclickNums == 1 && curTime > longPressTime)
-            {
+                //长按
                 isLongPress = true;
-                break;
+                onLongPress.Invoke();
+                //print("长按");
             }
         }
     }
 
-    public int onclickNums = 0;//点击次数
+    int onclickNums = 0;//点击次数
 
     Coroutine cor;
     float curTime = 0;
-    float waitTime = 0.25f;
+    float waitTime = 0.27f;
 
     float longPressTime = 0.7f;
-    public bool isLongPress = false;
-    public bool isUp = true;
-    
+    bool isLongPress = false;
+    bool isUp = true;
+
     public void OnPointerDown(PointerEventData eventData)
     {
         isUp = false;
@@ -76,6 +62,16 @@ public class MButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler,
     public void OnPointerUp(PointerEventData eventData)
     {
         isUp = true;
+
+        if (onclickNums == 2 && isLongPress == false)
+        {
+            //双击
+            StopCoroutine(cor);
+            onclickNums = 0;
+            curTime = 0;
+            onDoubleClick.Invoke();
+            //print("双击");
+        }
     }
 
     void Update()
@@ -90,6 +86,6 @@ public class MButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler,
                 curTime = 0;
                 StopCoroutine(cor);
             }
-        }   
+        }
     }
 }
